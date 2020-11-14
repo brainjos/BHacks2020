@@ -7,6 +7,19 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 from environapp.db import get_db
+from twilio.rest import Client
+
+account_sid = "ACa2265e40cf5d0e64787899eff0170023"
+auth_token = "b217f03dc0715d6dab5ef35b7200db99"
+client = Client(account_sid, auth_token)
+
+def welcome_message(username, phoneno):
+    message = client.messages \
+    .create(
+         body='Welcome to the Environmental Check-In App, %s!' % username,
+         from_='+12543263257',
+         to= phoneno
+     )
 
 from twilio.twiml.messaging_response import MessagingResponse
 
@@ -70,6 +83,7 @@ def create_app(test_config=None):
                     (username, generate_password_hash(password), phoneno)
                 )
                 db.commit()
+                welcome_message(username, phoneno)
                 return render_template('index.html')
 
             flash(error)
