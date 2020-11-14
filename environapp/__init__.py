@@ -8,6 +8,10 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from environapp.db import get_db
 
+from twilio.twiml.messaging_response import MessagingResponse
+
+from models import *
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -29,6 +33,12 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    # load questions
+    LOADED_QUESTIONS = None
+    with open('./questions.json') as f:
+        print(f)
+        LOADED_QUESTIONS = load_questions(f)
 
     # a simple page that says hello
     @app.route('/', methods=('GET', 'POST'))
@@ -65,6 +75,79 @@ def create_app(test_config=None):
             flash(error)
 
         return render_template('index.html')
+
+
+    # respond to user's messages
+    @app.route('/sms', methods=['GET, POST'])
+    def reply():
+        response = MessagingResponse()
+
+        if 'question_id' in session:
+            response.redirect(url_for('answer', question_id=session['question_id']))
+        else:
+            start_questions()
+
+
+        return str(response)
+
+    # first question
+    def start_questions(response):
+        response.redirect(url=url_for('question', question_id=0), method='GET')
+
+    # ask question
+    # question id = index
+    @app.route('/question/<question_id>')
+    def question(question_id):
+        try:
+            question = LOADED_QUESTIONS[question_id]
+        except IndexError:
+            print(f"Question of id {question_id} does not exist.")
+
+        session['question_id'] = question_id
+
+        return sms_response(question)
+
+    def sms_response(question):
+        response = MessagingResponse()
+        response.message(question.prompt)
+
+        return str(response)
+
+
+    # handle user response
+    @app.route('/answer/<question_id>', methods=['POST'])
+    def answer(question_id):
+        question = LOADED_QUESTIONS[question_id]
+        print(question_id, " answered")
+        # database = None # placeholder
+
+        # database.save("something") #placeholder
+
+        c = session.get('question_id', 0)
+        c += 1
+        session['question_id'] = c
+
+        # does this question exist?
+        if(c < len(LOADED_QUESTIONS)):
+            return go_to_question(c)
+
+        else:
+            return finished_message()
+
+
+    def go_to_question(question_id):
+        response = MessagingResponse()
+        response.redirect(url=url_for('question', question_id=question_id), method='GET')
+
+        return str(response)
+
+    
+    # end result
+    def finished_message():
+        print(f"{request.values['MessageSid']} is done")
+        return "done"
+
+
 
     from . import db
     db.init_app(app)
