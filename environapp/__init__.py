@@ -47,7 +47,7 @@ def create_app(test_config=None):
                 error = 'Username is required.'
             elif not password:
                 error = 'Password is required.'
-            elif not phoneno:
+            elif not phoneno or not phoneno.isdigit():
                 error = 'Phone number is required.'
             elif db.execute(
                 'SELECT id from user WHERE username = ?', (username,)

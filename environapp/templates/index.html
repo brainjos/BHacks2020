@@ -14,4 +14,36 @@
     <input name="phoneno" id="phoneno" required>
     <input type="submit" value="Register">
   </form>
+
+  <script type="text/javascript">
+    const numOnly = /^[0-9]*$/;
+    let lastNumber = "";
+    let displayNumber = "";
+    function init() {
+        document.getElementById("phoneno").oninput = function() {
+            // only numbers
+            let val = this.value.replace(/\D/g, "");
+            if(val.length > 10) this.value = lastNumber;
+
+            // this.value = formatNumberToDisplay(val);
+            this.value = val;
+            lastNumber = this.value;
+        };
+    }
+
+    // function formatNumberToDisplay(num) {
+    //     let n = "";
+
+    //     n += num.slice(0, 3);
+    //     if(num.length <= 3) return n;
+
+    //     n += "-" + num.slice(3, 6);
+    //     if(num.length <= 6) return n;
+
+    //     n += "-" + num.slice(6, 10);
+    //     return n;
+    // }
+
+    init();
+</script>
 {% endblock %}
