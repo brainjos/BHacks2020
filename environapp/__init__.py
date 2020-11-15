@@ -209,7 +209,9 @@ def create_app(test_config=None):
 
         print("Got response ", ansF)
 
-        # TODO: Store ansF in database
+        # TODO: add GALLONS to database
+        # calculate number of gallons from question. ex: how long was your shower, answer => gallons += 2.5 * answer
+        # then add to database
 
         # db = get_db()
         # db.execute(
