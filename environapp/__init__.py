@@ -284,10 +284,16 @@ def create_app(test_config=None):
                 water = 4
 
         username = session.get('username')
-        db = get_sb()
+        print(username)
+        db = get_db()
         cur = db.execute("SELECT * FROM user WHERE username = ?", (username,))
-        prev = cur.fetchone()["water"]
-        new = water + prev
+        fe = cur.fetchone()
+        new = water
+        if fe is not None:
+            prev = fe["water"]
+            if prev is None:
+                prev = 0
+            new = water + prev
         db.execute("UPDATE user SET water = ? WHERE username = ?", (new, username))
 
         return ansF
