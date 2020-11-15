@@ -50,9 +50,6 @@ def create_app(test_config=None):
             username = request.form['username']
             password = request.form['password']
             phoneno = request.form['phoneno']
-            print(username)
-            print(password)
-            print(phoneno)
             db = get_db()
             error = None
 
