@@ -2,3 +2,6 @@
 
 # settings
 environapp/settings.py
+
+# optimized
+environapp/__pycache__/
