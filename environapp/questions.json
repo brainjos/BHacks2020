@@ -1,6 +1,10 @@
 {
     "questions": [
         {
+            "prompt": "What is your username? (string)",
+            "response":"s"
+        },
+        {
             "prompt": "How many minutes were you in the shower? (number)",
             "response":"i"
         },

@@ -121,6 +121,7 @@ def create_app(test_config=None):
                     )
                     db.commit()
                     session['username'] = username
+                    print("USER IS", session['username'])
                     print(username)
                     welcome_message(username, phoneno)
                     return render_template('index.html')
@@ -139,17 +140,20 @@ def create_app(test_config=None):
                 return index()
 
         username = session.get('username', None)
+        print("we are", username)
         if username is None:
             return redirect(url_for('index'))
 
-        db = get_db()
-        cur = db.execute('SELECT * FROM user WHERE username = ?', (username,))
-        water = cur.fetchone()["water"]
+        # db = get_db()
+        # cur = db.execute('SELECT * FROM user WHERE username = ?', (username,))
+        # fe = cur.fetchone()
+        # water = ["water"]
 
-        print(water, "water")
+        # print(water, "water")
 
 
-        return render_template('compare.html', water=water)
+        # return render_template('compare.html', water=water)
+        return render_template('compare.html')
 
 
     # respond to user's messages
@@ -273,28 +277,36 @@ def create_app(test_config=None):
 
         # TODO: Store ansF in database
 
+        if id == 0:
+            session["username"] = ansF
+
 
         water = 0
-        if id == 0:
+
+
+
+        if id == 1:
             water = ansF * 2.5
-        elif id == 1:
-            water = ansF * 1.6
         elif id == 2:
-            if ansF == 'yes':
+            water = ansF * 1.6
+        elif id == 3:
+            if ansF == 'no':
                 water = 4
 
         username = session.get('username')
-        print('USERNAME IS', username)
+        print('USERNAME IS', username,', test')
         db = get_db()
         cur = db.execute("SELECT * FROM user WHERE username = ?", (username,))
         fe = cur.fetchone()
         new = water
         if fe is not None:
             prev = fe["water"]
+            print("prev", prev)
             if prev is None:
                 prev = 0
             new = water + prev
         db.execute("UPDATE user SET water = ? WHERE username = ?", (new, username))
+        print("new", new)
 
         return ansF
 
