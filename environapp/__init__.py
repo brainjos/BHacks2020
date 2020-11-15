@@ -103,6 +103,10 @@ def create_app(test_config=None):
                     'SELECT id from user WHERE username = ?', (username,)
                 ).fetchone() is not None:
                     error = 'User {} is already registered.'.format(username)
+                elif db.execute(
+                    'SELECT id from user WHERE phoneno = ?', (phoneno,)
+                ).fetchone() is not None:
+                    error = 'Phone number {} is already registered by another user.'.format(phoneno)
 
                 if error is None:
                     db.execute(
@@ -210,7 +214,9 @@ def create_app(test_config=None):
     # reask: if we have already asked this question but the user gave an invalid answer
     def go_to_question(question_id, reask=False):
         response = MessagingResponse()
-        response.message("Please send a valid input. ")
+        if reask: 
+            response.message("Please send a valid input. ")
+
         response.redirect(url=url_for('question', question_id=question_id), method='GET')
 
         return str(response)
@@ -227,6 +233,17 @@ def create_app(test_config=None):
                 ansF = int(ans)
             except ValueError:
                 return False
+
+        elif question.response == 'yn':
+            # must be letters only
+            if not ans.isalpha():
+                return False
+
+            lower = ans.lower()
+            if lower == 'yes' or lower == 'no':
+                ansF = lower
+            else:
+                return False
         
         elif question.response == 's':
             ansF = ans
@@ -234,6 +251,10 @@ def create_app(test_config=None):
         print("Got response ", ansF)
 
         # TODO: Store ansF in database
+
+        # 4 gallons for leaving faucet on
+        # 2.5 per min in shower
+        # 1.6 per flush
 
         # db = get_db()
         # db.execute(
