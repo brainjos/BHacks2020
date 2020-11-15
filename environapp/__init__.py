@@ -138,7 +138,6 @@ def create_app(test_config=None):
         if not IS_RECEIVING:
             return
 
-        print(f"receive from {request.values.get('From')}")
         response = MessagingResponse()
 
         # if we've already asked another question, then go to the next one
