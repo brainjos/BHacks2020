@@ -284,7 +284,7 @@ def create_app(test_config=None):
                 water = 4
 
         username = session.get('username')
-        print(username)
+        print('USERNAME IS', username)
         db = get_db()
         cur = db.execute("SELECT * FROM user WHERE username = ?", (username,))
         fe = cur.fetchone()
