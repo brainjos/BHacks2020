@@ -146,7 +146,7 @@ def create_app(test_config=None):
         cur = db.execute('SELECT * FROM user WHERE username = ?', (username,))
         water = cur.fetchone()["water"]
 
-        print(water. "water")
+        print(water, "water")
 
 
         return render_template('compare.html', water=water)
