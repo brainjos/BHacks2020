@@ -30,6 +30,16 @@
 
 <canvas id="plot-1" width="700" height="260">Your browser does not support canvases</canvas>
 
+<div>
+  <br>
+  <h1 id="tips-head"></h1>
+  <h1>Tips:</h1>
+  <ul id=tips-body>
+    <li>Shut off the sink while you are brushing your teeth</li>
+    <li>Take shorter showers</li>
+  </ul>
+</div>
+
 <script>
   const TITLE1 = "How much water do you use daily?"
   const LABEL1 = "Gallons"
@@ -40,6 +50,9 @@
   const max = 180;
 
   const userGallons = 76; // placeholder. TODO: replace with number from database
+
+  // give tips
+  document.getElementById("tips-head").innerHTML = userGallons < greenThresh ? "You're doing great!" : "You could be saving more water!";
 
   const red = "#e34b52";
   const yellow = "#e8e656";
@@ -246,72 +259,10 @@
 
 
     window.plot1 = plot1;
-    // Chart.scaleService.updateScaleDefaults("linear", {
-    //   ticks: {
-    //     min: min
-    //   }
-    // });
   }
 
+  // average water consumption daily per American = 88 gallons https://www.epa.gov/watersense/statistics-and-facts
 
-  // const w = 600, h = 130;
-  // const barHeight = 75;
-  // const avrg = 88;
-  // const max = 180;
-  // const startX = 50;
-  // // average water consumption daily per American = 88 gallons https://www.epa.gov/watersense/statistics-and-facts
-  // const greenThresh = 72; // <
-  // const redThresh = 100; // >
-
-  // const scale = w / max;
-
-
-
-  // //placeholder
-  // let _water = 87;
-
-  // let plot1 = document.getElementById("plot-1");
-  // let ctx = plot1.getContext("2d");
-  // // ctx.lineWidth = 3;
-
-  // // lower end, green
-  // ctx.beginPath();
-  // ctx.fillStyle = green;
-  // ctx.rect(startX, barHeight, greenThresh * scale, h - barHeight);
-  // ctx.fill();
-
-  // // middle, yellow
-  // ctx.beginPath();
-  // ctx.fillStyle = yellow;
-  // ctx.rect(greenThresh * scale + startX, barHeight, (redThresh - greenThresh) * scale, h - barHeight);
-  // ctx.fill();
-
-  // // higher end, red
-  // ctx.beginPath();
-  // ctx.fillStyle = red;
-  // ctx.rect(redThresh * scale + startX, barHeight, (max - redThresh) * scale, h - barHeight);
-  // ctx.fill();
-
-  // // you
-  // ctx.font = "bold 18px Arial";
-  // ctx.fillStyle = "black";
-  // ctx.textAlign = "center";
-  // ctx.fillText(`You: ${_water}`, _water * scale + startX, 50);
-
-  // // labels (0, avrg, max)
-  // ctx.font = "18px Arial";
-  // ctx.fillText("0", startX, 145);
-  // ctx.fillText(max.toString(), startX + w, 145);
-  // ctx.fillText("Average:", avrg * scale + startX, 145);
-  // ctx.fillText(avrg.toString(), avrg * scale + startX, 160);
-  
-  // // avrg
-  // ctx.lineWidth = 3;
-  // ctx.beginPath();
-  // ctx.strokeStyle = "black";
-  // ctx.moveTo(avrg * scale + startX, barHeight);
-  // ctx.lineTo(avrg * scale + startX, h);
-  // ctx.stroke();
 
 </script>
 
