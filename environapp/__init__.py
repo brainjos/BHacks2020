@@ -33,6 +33,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from environapp.models import *
 
 
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -40,6 +41,9 @@ def create_app(test_config=None):
         SECRET_KEY=SECRET_KEY,
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
+
+    # if 'question_id' in session:
+    #     del session['question_id']
 
     # if test_config is None:
     #     # load the instance config, if it exists, when not testing
@@ -71,6 +75,7 @@ def create_app(test_config=None):
         # return render_template('compare.html')
 
         print(request.method)
+        
 
         if request.method == 'POST':
 
@@ -82,7 +87,8 @@ def create_app(test_config=None):
 
             # register new user
             elif request.form['submit_button'] == 'Register':
-
+                if not 'question_id' in session:
+                    print('asdfasdf')
                 if 'question_id' in session and session['question_id']:
                     del session['question_id']
 
@@ -130,7 +136,7 @@ def create_app(test_config=None):
             if request.form['submit_button'] == 'Back':
                 return index()
 
-        return render_template('compare.html')
+        return render_template('compare.html', water=session.get('gallons', 0))
 
 
     # respond to user's messages
@@ -149,6 +155,8 @@ def create_app(test_config=None):
             response.redirect(url_for('answer', question_id=session['question_id']))
         # otherwise, start asking with the first question
         else:
+            if 'gallons' in session:
+                del session['gallons']
             start_questions(response)
 
 
@@ -256,6 +264,18 @@ def create_app(test_config=None):
         # 2.5 per min in shower
         # 1.6 per flush
 
+        water = 0
+        if id == 0:
+            water = ansF * 2.5
+        elif id == 1:
+            water = ansF * 1.6
+        elif id == 2:
+            if ansF == 'yes':
+                water = 4
+
+        g = session.get('gallons', 0)
+        session['gallons'] = g + water
+
         # db = get_db()
         # db.execute(
         #     # 'INSERT INTO user (username, password, phoneno) VALUES (?, ?, ?)',
@@ -271,6 +291,9 @@ def create_app(test_config=None):
         # if 'question_id' in session:
         #     del session['question_id'] 
         print(f"{request.values['MessageSid']} is done")
+        print(session['gallons'], "gals")
+        
+        session.clear()
         return "done"
 
 

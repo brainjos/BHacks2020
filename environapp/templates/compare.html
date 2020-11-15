@@ -33,8 +33,9 @@
 <div>
   <br>
   <h1 id="tips-head"></h1>
+  <p id="water">{{water}}</p>
   <h1>Tips:</h1>
-  <ul id=tips-body>
+  <ul id="tips-body">
     <li>Shut off the sink while you are brushing your teeth</li>
     <li>Take shorter showers</li>
   </ul>
@@ -49,7 +50,8 @@
   const redThresh = 100; // >
   const max = 180;
 
-  const userGallons = 76; // placeholder. TODO: replace with number from database
+  // const userGallons = 76; // placeholder. TODO: replace with number from database
+  const userGallons = parseInt(document.getElementById("water").innerHTML)
 
   // give tips
   let tipText = userGallons < greenThresh ? "You're doing great!" : "You could be saving more water!";
