@@ -269,6 +269,7 @@ def create_app(test_config=None):
 
         # TODO: Store ansF in database
 
+
         water = 0
         if id == 0:
             water = ansF * 2.5
@@ -278,15 +279,12 @@ def create_app(test_config=None):
             if ansF == 'yes':
                 water = 4
 
-        g = session.get('gallons', 0)
-        session['gallons'] = g + water
-
-        # db = get_db()
-        # db.execute(
-        #     # 'INSERT INTO user (username, password, phoneno) VALUES (?, ?, ?)',
-        #     # (username, generate_password_hash(password), phoneno)
-        # )
-        # db.commit()
+        username = session.get('username')
+        db = get_sb()
+        cur = db.execute("SELECT * FROM user WHERE username = ?", (username,))
+        prev = cur.fetchone()["water"]
+        new = water + prev
+        db.execute("UPDATE user SET water = ? WHERE username = ?", (new, username))
 
 
     
