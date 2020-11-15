@@ -41,9 +41,14 @@ message6 = client.messages \
            body=yourpercentsink,
            from_='+131575622016',
            to_=phonenumber,)
+message7 = client.messages \
+           body= (shower*1.5+sink*2), "gallons were used",((yourpercentshow+yourpercentsink)/2),"was your total percentage compared to the average person",
+           from_='+131575622016',
+           to_=phonenumber,)
 schedule.every().day.at("20:00").do(print(message1.sid)),
 schedule.every().day.at("20:05").do(print(message2.sid,"gallons were used"))
 schedule.every().day.at("20:06").do(print(message3.sid,"is your percentage compared to the average person")
 schedule.every().day.at("20:06").do(print(message4.sid)
 schedule.every().day.at("20:10").do(print(message5.sid,"was the gallons of water you used")
 schedule.every().day.at("20:11").do(print(message6.sid,"was your percentage of water used compared to the average person")
+schedule.every().day.at("20:12").do(print(message7.sid)
