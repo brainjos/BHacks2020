@@ -1,7 +1,7 @@
 {
     "questions": [
         {
-            "prompt": "What is your phone number? (number, please include your area code before, no spaces)"
+            "prompt": "What is your phone number? (number, please include your area code before, no spaces)",
             "response":"i"
         },
         {
@@ -9,7 +9,7 @@
             "response":"i"
         },
         {
-            "prompt": "How many minutes did you run the sink today(number)"
+            "prompt": "How many minutes did you run the sink today(number)",
             "response":"i"
         }
             
