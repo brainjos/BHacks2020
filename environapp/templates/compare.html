@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Compare{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script> -->
+
+<canvas id="plot-1" width="600" height="150">Your browser does not support canvases</canvas>
+
+<script>
+  // NOTE: NOT TESTED
+  const w = 600, h = 150;
+  const barHeight = 75;
+  const avrg = 88;
+  // average water consumption daily per American = 88 gallons https://www.epa.gov/watersense/statistics-and-facts
+  const greenThresh = 64; // <
+  const redThresh = 110; // >
+
+  const scale = w / avrg;
+
+  const red = "#e34b52";
+  const yellow = "#e8e656";
+  const green = "#56e85d";
+
+  //placeholder
+  let _water = 87;
+
+  let plot1 = document.getElementById("plot-1");
+  let ctx = plot1.getContext("2d");
+  ctx.lineWidth = 3;
+
+  // lower end, green
+  ctx.beginPath();
+  ctx.strokeStyle = green;
+  ctx.rect(2, barHeight, greenThresh * scale, h - barHeight);
+  ctx.stroke();
+
+  // middle, yellow
+  ctx.beginPath();
+  ctx.strokeStyle = yellow;
+  ctx.rect(greenThresh + 2, barHeight, (redThresh - greenThresh) * scale, h - barHeight);
+  ctx.stroke();
+
+  // higher end, red
+  ctx.beginPath();
+  ctx.strokeStyle = red;
+  ctx.rect(2, barHeight, (w - redThresh) * scale, h - barHeight);
+  ctx.stroke();
+
+  // you
+  ctx.font = "bold 18px Arial";
+  ctx.fillStyle = "black";
+  ctx.textAlign = "center";
+  ctx.fillText(`You: ${_water}`, _water * scale, 110);
+
+</script>
+
+{% endblock %}
