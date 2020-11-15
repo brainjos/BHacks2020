@@ -211,14 +211,15 @@ def create_app(test_config=None):
 
         # TODO: Store ansF in database
 
-        # db = get_db()
-        # db.execute(
-        #     # 'INSERT INTO user (username, password, phoneno) VALUES (?, ?, ?)',
+        db = get_db()
+        #cur = db.execute(
+        #    'SELECT * FROM user WHERE username = ?')
+        #db.execute(
+        #    'UPDATE user (water) VALUES (?, ?, ?)',
         #     # (username, generate_password_hash(password), phoneno)
         # )
         # db.commit()
 
-        return ansF
 
     
     # end result
