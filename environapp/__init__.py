@@ -120,6 +120,8 @@ def create_app(test_config=None):
                         (username, generate_password_hash(password), phoneno)
                     )
                     db.commit()
+                    session['username'] = username
+                    print(username)
                     welcome_message(username, phoneno)
                     return render_template('index.html')
 
@@ -136,13 +138,15 @@ def create_app(test_config=None):
             if request.form['submit_button'] == 'Back':
                 return index()
 
-        username = session.get('username')
+        username = session.get('username', None)
         if username is None:
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))
 
         db = get_db()
         cur = db.execute('SELECT * FROM user WHERE username = ?', (username,))
         water = cur.fetchone()["water"]
+
+        print(water. "water")
 
 
         return render_template('compare.html', water=water)
@@ -288,6 +292,8 @@ def create_app(test_config=None):
         # )
         # db.commit()
 
+        return ansF
+
 
     
     # end result
@@ -295,7 +301,7 @@ def create_app(test_config=None):
         # if 'question_id' in session:
         #     del session['question_id'] 
         print(f"{request.values['MessageSid']} is done")
-        print(session['gallons'], "gals")
+        # print(session['gallons'], "gals")
         
         session.clear()
         return "done"
