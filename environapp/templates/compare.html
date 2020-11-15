@@ -6,56 +6,319 @@
 
 {% block content %}
 
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
 
-<canvas id="plot-1" width="600" height="150">Your browser does not support canvases</canvas>
+<style>
+  canvas {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+  }
+
+  #chartjs-tooltip {
+    opacity: 1;
+    position: absolute;
+    background: rgba(0, 0, 0, .8);
+    color: white;
+    border-radius: 2px;
+    -webkit-transition: all .1s ease;
+    transition: all .1s ease;
+    pointer-events: none;
+  }
+</style>
+
+
+<canvas id="plot-1" width="700" height="260">Your browser does not support canvases</canvas>
 
 <script>
-  // NOTE: NOT TESTED
-  const w = 600, h = 150;
-  const barHeight = 75;
+  const TITLE1 = "How much water do you use daily?"
+  const LABEL1 = "Gallons"
+  const min = 20;
+  const greenThresh = 72; // <
   const avrg = 88;
-  // average water consumption daily per American = 88 gallons https://www.epa.gov/watersense/statistics-and-facts
-  const greenThresh = 64; // <
-  const redThresh = 110; // >
+  const redThresh = 100; // >
+  const max = 180;
 
-  const scale = w / avrg;
+  const userGallons = 76; // placeholder. TODO: replace with number from database
 
   const red = "#e34b52";
   const yellow = "#e8e656";
   const green = "#56e85d";
+  
+  const plot1TooltipTextForSection = {
+    Lower: `<b>You: ${userGallons}</b> <= 72`,
+    Middle: `72 < <b>You: ${userGallons}</b> <= 100`,
+    Higher: `<b>You: ${userGallons}</b> > 100`
+  }
 
-  //placeholder
-  let _water = 87;
+  const getPlot1TooltipTextFor = function(text) {
+    const t = text.split(':')[0];
+    return plot1TooltipTextForSection[t];
+  }
 
-  let plot1 = document.getElementById("plot-1");
-  let ctx = plot1.getContext("2d");
-  ctx.lineWidth = 3;
+  
+  const verticalLineLabels = {};
+  verticalLineLabels[avrg] = "Average";
+  verticalLineLabels[userGallons] = "You";
 
-  // lower end, green
-  ctx.beginPath();
-  ctx.strokeStyle = green;
-  ctx.rect(2, barHeight, greenThresh * scale, h - barHeight);
-  ctx.stroke();
+  // draw line at average and user gallons 
+  // https://stackoverflow.com/questions/30256695/chart-js-drawing-an-arbitrary-vertical-line
+  const verticalLinePlugin = {
+    getLinePosition: function (chart, pointIndex) {
+        const meta = chart.getDatasetMeta(0); // first dataset is used to discover X coordinate of a point
+        const data = meta.data;
+        // return data[pointIndex]._model.x;
+        return data[0]._xScale.maxWidth / max * pointIndex + min;
+    },
+    renderVerticalLine: function (chartInstance, pointIndex) {
+        // only allowed to label user and average
+        if(pointIndex !== avrg && pointIndex !== userGallons) return;
 
-  // middle, yellow
-  ctx.beginPath();
-  ctx.strokeStyle = yellow;
-  ctx.rect(greenThresh + 2, barHeight, (redThresh - greenThresh) * scale, h - barHeight);
-  ctx.stroke();
+        const lineLeftOffset = this.getLinePosition(chartInstance, pointIndex);
+        // const lineLeftOffset = pointIndex * chart.getDatasetMeta(0).data;
+        const scale = chartInstance.scales['y-axis-0'];
+        const context = chartInstance.chart.ctx;
 
-  // higher end, red
-  ctx.beginPath();
-  ctx.strokeStyle = red;
-  ctx.rect(2, barHeight, (w - redThresh) * scale, h - barHeight);
-  ctx.stroke();
+        // render vertical line
+        context.beginPath();
+        context.strokeStyle = '#222222';
+        context.lineWidth = 2;
+        context.moveTo(lineLeftOffset, scale.top);
+        context.lineTo(lineLeftOffset, scale.bottom);
+        context.stroke();
 
-  // you
-  ctx.font = "bold 18px Arial";
-  ctx.fillStyle = "black";
-  ctx.textAlign = "center";
-  ctx.fillText(`You: ${_water}`, _water * scale, 110);
+        // write label
+        context.fillStyle = "#222222";
+        context.textAlign = 'center';
+        // let pos = (scale.bottom - scale.top) / 2 + scale.top
+        let pos = scale.top - (scale.bottom - scale.top) / 8;
+        context.fillText(verticalLineLabels[pointIndex], lineLeftOffset, pos);
+    },
+
+    afterDatasetsDraw: function (chart, easing) {
+        if (chart.config.lineAtIndex) {
+            chart.config.lineAtIndex.forEach(pointIndex => this.renderVerticalLine(chart, pointIndex));
+        }
+    }
+  };
+
+  Chart.plugins.register(verticalLinePlugin);
+
+  let DATA = {
+
+    labels: [LABEL1],
+    datasets: [
+      {
+        label: "Lower",
+        backgroundColor: green,
+        data: [greenThresh]
+      },
+      {
+        label: "Middle",
+        backgroundColor: yellow,
+        data: [redThresh - greenThresh]
+      },
+      {
+        label: "Higher",
+        backgroundColor: red,
+        data: [max - redThresh]
+      }
+    ]
+
+  };
+
+  let plot1Tooltip = function(tooltipModel) {
+    // Tooltip Element
+    var tooltipEl = document.getElementById('chartjs-tooltip');
+
+    // Create element on first render
+    if (!tooltipEl) {
+        tooltipEl = document.createElement('div');
+        tooltipEl.id = 'chartjs-tooltip';
+        tooltipEl.innerHTML = '<table></table>';
+        document.body.appendChild(tooltipEl);
+    }
+
+    // Hide if no tooltip
+    if (tooltipModel.opacity === 0) {
+        tooltipEl.style.opacity = 0;
+        return;
+    }
+
+    // Set caret Position
+    tooltipEl.classList.remove('above', 'below', 'no-transform');
+    if (tooltipModel.yAlign) {
+        tooltipEl.classList.add(tooltipModel.yAlign);
+    } else {
+        tooltipEl.classList.add('no-transform');
+    }
+
+    function getBody(bodyItem) {
+        return bodyItem.lines;
+    }
+
+    // Set Text
+    if (tooltipModel.body) {
+        var titleLines = tooltipModel.title || [];
+        var bodyLines = tooltipModel.body.map(getBody);
+
+        var innerHtml = '<thead>';
+
+        titleLines.forEach(function(title) {
+            innerHtml += '<tr><th>' + title + '</th></tr>';
+        });
+        innerHtml += '</thead><tbody>';
+
+        bodyLines.forEach(function(body, i) {
+            let text = getPlot1TooltipTextFor(body[0]) || "undefined";
+            var colors = tooltipModel.labelColors[i];
+            var style = 'background:' + colors.backgroundColor;
+            style += '; border-color:' + colors.borderColor;
+            style += '; border-width: 2px';
+            var span = '<span style="' + style + '"></span>';
+            innerHtml += '<tr><td>' + span + text + '</td></tr>';
+        });
+        innerHtml += '</tbody>';
+
+        var tableRoot = tooltipEl.querySelector('table');
+        tableRoot.innerHTML = innerHtml;
+    }
+
+    // `this` will be the overall tooltip
+    var position = this._chart.canvas.getBoundingClientRect();
+
+    // Display, position, and set styles for font
+    tooltipEl.style.opacity = 1;
+    tooltipEl.style.position = 'absolute';
+    tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
+    tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
+    tooltipEl.style.fontFamily = tooltipModel._bodyFontFamily;
+    tooltipEl.style.fontSize = tooltipModel.bodyFontSize + 'px';
+    tooltipEl.style.fontStyle = tooltipModel._bodyFontStyle;
+    tooltipEl.style.padding = tooltipModel.yPadding + 'px ' + tooltipModel.xPadding + 'px';
+    tooltipEl.style.pointerEvents = 'none';
+
+  }
+
+  window.onload = function() {
+    let ctx = document.getElementById("plot-1").getContext("2d");
+    const plot1 = new Chart(ctx, {
+      type: 'horizontalBar',
+      data: DATA,
+      lineAtIndex: [avrg, userGallons],
+      options: {
+        // https://www.chartjs.org/docs/latest/configuration/tooltip.html#external-custom-tooltips
+        tooltips: {
+          enabled: false,
+          mode: "nearest",
+          custom: plot1Tooltip
+        },
+
+        elements: {
+          rectangle: {
+            borderWidth: 2,
+          }
+        },
+        // responsive: true,
+
+        scales: {
+          xAxes: [{
+            stacked: true,
+            ticks: {
+              min: min
+            }
+          }],
+          yAxes: [{
+            stacked: true
+          }]
+        },
+
+        legend: {
+          position: 'right',
+        },
+        title: {
+          display: true,
+          text: TITLE1,
+          padding: 70
+        }				
+      }
+    });
+
+
+    window.plot1 = plot1;
+    // Chart.scaleService.updateScaleDefaults("linear", {
+    //   ticks: {
+    //     min: min
+    //   }
+    // });
+  }
+
+
+  // const w = 600, h = 130;
+  // const barHeight = 75;
+  // const avrg = 88;
+  // const max = 180;
+  // const startX = 50;
+  // // average water consumption daily per American = 88 gallons https://www.epa.gov/watersense/statistics-and-facts
+  // const greenThresh = 72; // <
+  // const redThresh = 100; // >
+
+  // const scale = w / max;
+
+
+
+  // //placeholder
+  // let _water = 87;
+
+  // let plot1 = document.getElementById("plot-1");
+  // let ctx = plot1.getContext("2d");
+  // // ctx.lineWidth = 3;
+
+  // // lower end, green
+  // ctx.beginPath();
+  // ctx.fillStyle = green;
+  // ctx.rect(startX, barHeight, greenThresh * scale, h - barHeight);
+  // ctx.fill();
+
+  // // middle, yellow
+  // ctx.beginPath();
+  // ctx.fillStyle = yellow;
+  // ctx.rect(greenThresh * scale + startX, barHeight, (redThresh - greenThresh) * scale, h - barHeight);
+  // ctx.fill();
+
+  // // higher end, red
+  // ctx.beginPath();
+  // ctx.fillStyle = red;
+  // ctx.rect(redThresh * scale + startX, barHeight, (max - redThresh) * scale, h - barHeight);
+  // ctx.fill();
+
+  // // you
+  // ctx.font = "bold 18px Arial";
+  // ctx.fillStyle = "black";
+  // ctx.textAlign = "center";
+  // ctx.fillText(`You: ${_water}`, _water * scale + startX, 50);
+
+  // // labels (0, avrg, max)
+  // ctx.font = "18px Arial";
+  // ctx.fillText("0", startX, 145);
+  // ctx.fillText(max.toString(), startX + w, 145);
+  // ctx.fillText("Average:", avrg * scale + startX, 145);
+  // ctx.fillText(avrg.toString(), avrg * scale + startX, 160);
+  
+  // // avrg
+  // ctx.lineWidth = 3;
+  // ctx.beginPath();
+  // ctx.strokeStyle = "black";
+  // ctx.moveTo(avrg * scale + startX, barHeight);
+  // ctx.lineTo(avrg * scale + startX, h);
+  // ctx.stroke();
 
 </script>
+
+<br>
+
+<form method="post">
+  <input type="submit" name="submit_button" value="Back">
+</form>
 
 {% endblock %}

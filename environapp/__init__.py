@@ -67,41 +67,66 @@ def create_app(test_config=None):
     # a simple page that says hello
     @app.route('/', methods=('GET', 'POST'))
     def index():
+        # test
+        # return render_template('compare.html')
+
+        print(request.method)
+
         if request.method == 'POST':
 
-            if 'question_id' in session and session['question_id']:
-                del session['question_id']
+            print(request.form['submit_button'])
 
-            username = request.form['username']
-            password = request.form['password']
-            phoneno = request.form['phoneno']
+            # go to comparing data page
+            if request.form['submit_button'] == 'Compare':
+                return compare()
 
-            db = get_db()
-            error = None
+            # register new user
+            elif request.form['submit_button'] == 'Register':
 
-            if not username:
-                error = 'Username is required.'
-            elif not password:
-                error = 'Password is required.'
-            elif not phoneno or not phoneno.isdigit():
-                error = 'Phone number is required.'
-            elif db.execute(
-                'SELECT id from user WHERE username = ?', (username,)
-            ).fetchone() is not None:
-                error = 'User {} is already registered.'.format(username)
+                if 'question_id' in session and session['question_id']:
+                    del session['question_id']
 
-            if error is None:
-                db.execute(
-                    'INSERT INTO user (username, password, phoneno) VALUES (?, ?, ?)',
-                    (username, generate_password_hash(password), phoneno)
-                )
-                db.commit()
-                welcome_message(username, phoneno)
-                return render_template('index.html')
+                username = request.form['username']
+                password = request.form['password']
+                phoneno = request.form['phoneno']
 
-            flash(error)
+                db = get_db()
+                error = None
+
+                if not username:
+                    error = 'Username is required.'
+                elif not password:
+                    error = 'Password is required.'
+                elif not phoneno or not phoneno.isdigit():
+                    error = 'Phone number is required.'
+                elif db.execute(
+                    'SELECT id from user WHERE username = ?', (username,)
+                ).fetchone() is not None:
+                    error = 'User {} is already registered.'.format(username)
+
+                if error is None:
+                    db.execute(
+                        'INSERT INTO user (username, password, phoneno) VALUES (?, ?, ?)',
+                        (username, generate_password_hash(password), phoneno)
+                    )
+                    db.commit()
+                    welcome_message(username, phoneno)
+                    return render_template('index.html')
+
+                flash(error)
 
         return render_template('index.html')
+
+
+
+    # compare. TODO: will need to require username/password first
+    @app.route('/compare', methods=['GET', 'POST'])
+    def compare():
+        if request.method == 'POST':
+            if request.form['submit_button'] == 'Back':
+                return index()
+
+        return render_template('compare.html')
 
 
     # respond to user's messages
