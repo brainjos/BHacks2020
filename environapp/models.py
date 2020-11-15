@@ -4,8 +4,7 @@ class Question:
     # prompt: text of question asked
     # response: type of response.
     # first char = type
-    # second char = number of inputs
-    # ex: n1 = 1 number, s7 = 7 strings
+    # i = int, s = string
 
     def __init__(self, prompt, response):
         self.prompt = prompt
