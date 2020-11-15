@@ -52,7 +52,9 @@
   const userGallons = 76; // placeholder. TODO: replace with number from database
 
   // give tips
-  document.getElementById("tips-head").innerHTML = userGallons < greenThresh ? "You're doing great!" : "You could be saving more water!";
+  let tipText = userGallons < greenThresh ? "You're doing great!" : "You could be saving more water!";
+  if(userGallons === 0) tipText = "Your account has no data yet"; // either 0 or undefined?
+  document.getElementById("tips-head").innerHTML = tipText;
 
   const red = "#e34b52";
   const yellow = "#e8e656";
