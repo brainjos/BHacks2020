@@ -6,7 +6,7 @@ phonenumber = int(input('what is your phone number?(insert +area code)'))
 shower = int(input('how long in minutes did you shower today?(please answer within 8:05. results will come then as well.)'))
 sink = int(input('how long in minutes did you use the tap? (please answer before 8:10)')
 account_sid = "ACde852f468e8a9bd6d64a68c3aa35ec16"
-yourpercentshow = 20/(shower*1.5)
+yourpercentshow = 20/(shower*2.5)
 yourpercentsink = 11/(sink*2)
 auth_token = "3c9ecac073e105c34fa397ac3b3e254b"
 client = Client(account_sid, auth_token)
@@ -42,7 +42,7 @@ message6 = client.messages \
            from_='+131575622016',
            to_=phonenumber,)
 message7 = client.messages \
-           body= (shower*1.5+sink*2), "gallons were used",((yourpercentshow+yourpercentsink)/2),"was your total percentage compared to the average person",
+           body= (shower*2.5+sink*2), "gallons were used",((yourpercentshow+yourpercentsink)/2),"was your total percentage compared to the average person",
            from_='+131575622016',
            to_=phonenumber,)
 schedule.every().day.at("20:00").do(print(message1.sid)),
