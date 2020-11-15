@@ -33,6 +33,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from environapp.models import *
 
 
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -40,6 +41,9 @@ def create_app(test_config=None):
         SECRET_KEY=SECRET_KEY,
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
+
+    # if 'question_id' in session:
+    #     del session['question_id']
 
     # if test_config is None:
     #     # load the instance config, if it exists, when not testing
@@ -67,41 +71,81 @@ def create_app(test_config=None):
     # a simple page that says hello
     @app.route('/', methods=('GET', 'POST'))
     def index():
+        # test
+        # return render_template('compare.html')
+
+        print(request.method)
+        
+
         if request.method == 'POST':
 
-            if 'question_id' in session and session['question_id']:
-                del session['question_id']
+            print(request.form['submit_button'])
 
-            username = request.form['username']
-            password = request.form['password']
-            phoneno = request.form['phoneno']
+            # go to comparing data page
+            if request.form['submit_button'] == 'Compare':
+                return compare()
 
-            db = get_db()
-            error = None
+            # register new user
+            elif request.form['submit_button'] == 'Register':
+                if not 'question_id' in session:
+                    print('asdfasdf')
+                if 'question_id' in session and session['question_id']:
+                    del session['question_id']
 
-            if not username:
-                error = 'Username is required.'
-            elif not password:
-                error = 'Password is required.'
-            elif not phoneno or not phoneno.isdigit():
-                error = 'Phone number is required.'
-            elif db.execute(
-                'SELECT id from user WHERE username = ?', (username,)
-            ).fetchone() is not None:
-                error = 'User {} is already registered.'.format(username)
+                username = request.form['username']
+                password = request.form['password']
+                phoneno = request.form['phoneno']
 
-            if error is None:
-                db.execute(
-                    'INSERT INTO user (username, password, phoneno) VALUES (?, ?, ?)',
-                    (username, generate_password_hash(password), phoneno)
-                )
-                db.commit()
-                welcome_message(username, phoneno)
-                return render_template('index.html')
+                db = get_db()
+                error = None
 
-            flash(error)
+                if not username:
+                    error = 'Username is required.'
+                elif not password:
+                    error = 'Password is required.'
+                elif not phoneno or not phoneno.isdigit():
+                    error = 'Phone number is required.'
+                elif db.execute(
+                    'SELECT id from user WHERE username = ?', (username,)
+                ).fetchone() is not None:
+                    error = 'User {} is already registered.'.format(username)
+                elif db.execute(
+                    'SELECT id from user WHERE phoneno = ?', (phoneno,)
+                ).fetchone() is not None:
+                    error = 'Phone number {} is already registered by another user.'.format(phoneno)
+
+                if error is None:
+                    db.execute(
+                        'INSERT INTO user (username, password, phoneno) VALUES (?, ?, ?)',
+                        (username, generate_password_hash(password), phoneno)
+                    )
+                    db.commit()
+                    welcome_message(username, phoneno)
+                    return render_template('index.html')
+
+                flash(error)
 
         return render_template('index.html')
+
+
+
+    # compare. TODO: will need to require username/password first
+    @app.route('/compare', methods=['GET', 'POST'])
+    def compare():
+        if request.method == 'POST':
+            if request.form['submit_button'] == 'Back':
+                return index()
+
+        username = session.get('username')
+        if username is None:
+            return redirect(url_for('login'))
+
+        db = get_db()
+        cur = db.execute('SELECT * FROM user WHERE username = ?', (username,))
+        water = cur.fetchone()["water"]
+
+
+        return render_template('compare.html', water=water)
 
 
     # respond to user's messages
@@ -113,7 +157,6 @@ def create_app(test_config=None):
         if not IS_RECEIVING:
             return
 
-        print(f"receive from {request.values.get('From')}")
         response = MessagingResponse()
 
         # if we've already asked another question, then go to the next one
@@ -121,6 +164,8 @@ def create_app(test_config=None):
             response.redirect(url_for('answer', question_id=session['question_id']))
         # otherwise, start asking with the first question
         else:
+            if 'gallons' in session:
+                del session['gallons']
             start_questions(response)
 
 
@@ -186,7 +231,9 @@ def create_app(test_config=None):
     # reask: if we have already asked this question but the user gave an invalid answer
     def go_to_question(question_id, reask=False):
         response = MessagingResponse()
-        response.message("Please send a valid input. ")
+        if reask: 
+            response.message("Please send a valid input. ")
+
         response.redirect(url=url_for('question', question_id=question_id), method='GET')
 
         return str(response)
@@ -203,6 +250,17 @@ def create_app(test_config=None):
                 ansF = int(ans)
             except ValueError:
                 return False
+
+        elif question.response == 'yn':
+            # must be letters only
+            if not ans.isalpha():
+                return False
+
+            lower = ans.lower()
+            if lower == 'yes' or lower == 'no':
+                ansF = lower
+            else:
+                return False
         
         elif question.response == 's':
             ansF = ans
@@ -211,11 +269,21 @@ def create_app(test_config=None):
 
         # TODO: Store ansF in database
 
-        db = get_db()
-        #cur = db.execute(
-        #    'SELECT * FROM user WHERE username = ?')
-        #db.execute(
-        #    'UPDATE user (water) VALUES (?, ?, ?)',
+        water = 0
+        if id == 0:
+            water = ansF * 2.5
+        elif id == 1:
+            water = ansF * 1.6
+        elif id == 2:
+            if ansF == 'yes':
+                water = 4
+
+        g = session.get('gallons', 0)
+        session['gallons'] = g + water
+
+        # db = get_db()
+        # db.execute(
+        #     # 'INSERT INTO user (username, password, phoneno) VALUES (?, ?, ?)',
         #     # (username, generate_password_hash(password), phoneno)
         # )
         # db.commit()
@@ -227,6 +295,9 @@ def create_app(test_config=None):
         # if 'question_id' in session:
         #     del session['question_id'] 
         print(f"{request.values['MessageSid']} is done")
+        print(session['gallons'], "gals")
+        
+        session.clear()
         return "done"
 
 

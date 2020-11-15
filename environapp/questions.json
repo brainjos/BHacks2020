@@ -3,6 +3,16 @@
         {
             "prompt": "How many minutes were you in the shower? (number)",
             "response":"i"
+        },
+        {
+            "prompt": "How many times did you use the bathroom? (number)",
+            "response":"i"
+        },
+        {
+            "prompt": "Did you turn the faucet off while brushing your teeth? (yes/no)",
+            "response":"yn"
         }
+            
+        
     ]
 }

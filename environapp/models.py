@@ -4,7 +4,7 @@ class Question:
     # prompt: text of question asked
     # response: type of response.
     # first char = type
-    # i = int, s = string
+    # i = int, s = string, yn = yes/no
 
     def __init__(self, prompt, response):
         self.prompt = prompt
