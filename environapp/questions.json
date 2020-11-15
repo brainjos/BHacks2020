@@ -1,0 +1,8 @@
+{
+    "questions": [
+        {
+            "prompt": "How many minutes were you in the shower? (number)",
+            "response":"i"
+        }
+    ]
+}
