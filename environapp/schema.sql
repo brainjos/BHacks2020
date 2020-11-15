@@ -6,6 +6,6 @@ CREATE TABLE user (
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
   phoneno TEXT NOT NULL,
-  water INTEGER,
+  water INTEGER
 );
 
