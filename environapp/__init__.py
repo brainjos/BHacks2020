@@ -75,7 +75,7 @@ def create_app(test_config=None):
             username = request.form['username']
             password = request.form['password']
             phoneno = request.form['phoneno']
-            
+
             db = get_db()
             error = None
 
